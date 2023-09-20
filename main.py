@@ -1,9 +1,10 @@
-import requests
+import argparse
 import os
-from pathvalidate import sanitize_filename
+from urllib.parse import urljoin, urlparse, urlsplit
+
+import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
-from urllib.parse import urlparse, urlsplit
+from pathvalidate import sanitize_filename
 
 
 def check_for_redirect(response):
@@ -59,7 +60,14 @@ def main():
     os.makedirs(path_book, exist_ok=True)
     path_image = './images'
     os.makedirs(path_image, exist_ok=True)
-    for i in range(1, 11):
+    parser = argparse.ArgumentParser(
+        description='Описание что делает программа'
+    )
+    parser.add_argument('start', help='Первая книга', type=int, default=1)
+    parser.add_argument('end', help='Последня книга', type=int, default=11)
+    args = parser.parse_args()
+
+    for i in range(args.start, args.end):
         url = f'https://tululu.org/b{i}/'
         try:
             response = requests.get(url)
