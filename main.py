@@ -30,6 +30,29 @@ def download_image(url, folder='images/'):
         file.write(response.content)
 
 
+def parse_book_page(response, url):
+    soup = BeautifulSoup(response.text, 'lxml')
+    book_html = soup.find('div', id='content').find('h1')
+    book_name_author = book_html.text.split('::')
+    book_name = book_name_author[0].strip()
+    book_author = book_name_author[1].strip()
+    book_genre = soup.find('div', id='content').find('span', class_='d_book').find('a').text
+    comments = [comment.find('span').text for comment in soup.find_all('div', class_='texts')]
+    image_tag = soup.find('div', class_='bookimage').find('img')['src']
+    image_url = urljoin(url, image_tag)
+    book_tag = soup.find('div', id='content').find_all('a')[10]['href']
+    book_url = urljoin(url, book_tag)
+    book_data = {
+        'book_name': book_name,
+        'book_author': book_author,
+        'book_genre': book_genre,
+        'comments': comments,
+        'image_url': image_url,
+        'book_url': book_url,
+    }
+    return book_data
+
+
 def main():
 
     path_book = './Books'
@@ -38,22 +61,11 @@ def main():
     os.makedirs(path_image, exist_ok=True)
     for i in range(1, 11):
         url = f'https://tululu.org/b{i}/'
-        book_url = f'https://tululu.org/txt.php?id={i}'
         try:
             response = requests.get(url)
             response.raise_for_status()
             check_for_redirect(response)
-            soup = BeautifulSoup(response.text, 'lxml')
-            book_name = soup.find('div', id='content').find('h1')
-            book_name_list = book_name.text.split('::')
-            filename = f'{i}. {book_name_list[0].strip()}'
-            # download_txt(book_url, filename, folder='Books/')
-            image_tag = soup.find('div', class_='bookimage').find('img')['src']
-            download_image(image_tag)
-            book_genre = soup.find('div', id='content').find('span', class_='d_book')
-            print(book_genre.text)
-            # for i in soup.find_all('div', class_='texts'):
-            #     print(i.find('span').text)
+            print(parse_book_page(response, url))
         except requests.HTTPError as err:
             print(err.args[0])
 
