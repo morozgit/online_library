@@ -50,8 +50,10 @@ def main():
             # download_txt(book_url, filename, folder='Books/')
             image_tag = soup.find('div', class_='bookimage').find('img')['src']
             download_image(image_tag)
-            for i in soup.find_all('div', class_='texts'):
-                print(i.find('span').text)
+            book_genre = soup.find('div', id='content').find('span', class_='d_book')
+            print(book_genre.text)
+            # for i in soup.find_all('div', class_='texts'):
+            #     print(i.find('span').text)
         except requests.HTTPError as err:
             print(err.args[0])
 
