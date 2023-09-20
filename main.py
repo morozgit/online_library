@@ -15,6 +15,7 @@ def check_for_redirect(response):
 def download_txt(url, filename, folder='Books/'):
     response = requests.get(url)
     response.raise_for_status()
+    check_for_redirect(response)
     path_to_file = os.path.join(folder, f'{sanitize_filename(filename)}.txt')
     with open(path_to_file, 'wb') as file:
         file.write(response.content)
@@ -25,6 +26,7 @@ def download_image(url, folder='images/'):
     url_image = urljoin('https://tululu.org/', url)
     response = requests.get(url_image)
     response.raise_for_status()
+    check_for_redirect(response)
     file_name = urlsplit(url_image).path.split('/')[-1]
     image_path = os.path.join(folder, file_name)
     with open(image_path, 'wb') as file:
@@ -67,7 +69,7 @@ def main():
     parser.add_argument('-end', help='Последня книга', type=int, default=11)
     args = parser.parse_args()
 
-    for i in range(args.start, args.end):
+    for i in range(args.start, args.end + 1):
         url = f'https://tululu.org/b{i}/'
         try:
             response = requests.get(url)
