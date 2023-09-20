@@ -63,8 +63,8 @@ def main():
     parser = argparse.ArgumentParser(
         description='Описание что делает программа'
     )
-    parser.add_argument('start', help='Первая книга', type=int, default=1)
-    parser.add_argument('end', help='Последня книга', type=int, default=11)
+    parser.add_argument('-start', help='Первая книга', type=int, default=1)
+    parser.add_argument('-end', help='Последня книга', type=int, default=11)
     args = parser.parse_args()
 
     for i in range(args.start, args.end):
@@ -73,7 +73,9 @@ def main():
             response = requests.get(url)
             response.raise_for_status()
             check_for_redirect(response)
-            print(parse_book_page(response, url))
+            books_data = parse_book_page(response, url)
+            download_txt(books_data['book_url'], f"{i}. {books_data['book_name']}")
+            download_image(books_data['image_url'])
         except requests.HTTPError as err:
             print(err.args[0])
 
