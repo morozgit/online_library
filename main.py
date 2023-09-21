@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 from urllib.parse import urljoin, urlparse, urlsplit
 
 import requests
@@ -45,7 +46,7 @@ def parse_book_page(response, url):
     image_url = urljoin(url, image_tag)
     book_tag = soup.find('div', id='content').find_all('a')[10]['href']
     book_url = urljoin(url, book_tag)
-    book_data = {
+    book = {
         'book_name': book_name,
         'book_author': book_author,
         'book_genre': book_genre,
@@ -53,7 +54,7 @@ def parse_book_page(response, url):
         'image_url': image_url,
         'book_url': book_url,
     }
-    return book_data
+    return book
 
 
 def main():
@@ -63,23 +64,26 @@ def main():
     path_image = './images'
     os.makedirs(path_image, exist_ok=True)
     parser = argparse.ArgumentParser(
-        description='Описание что делает программа'
+        description='Скрипт скачивает книги с сайта https://tululu.org.'
     )
-    parser.add_argument('-start', help='Первая книга', type=int, default=1)
-    parser.add_argument('-end', help='Последня книга', type=int, default=11)
+    parser.add_argument('-first_book', help='Первая книга', type=int, default=1)
+    parser.add_argument('-last_book', help='Последня книга', type=int, default=11)
     args = parser.parse_args()
 
-    for i in range(args.start, args.end + 1):
-        url = f'https://tululu.org/b{i}/'
+    for book_num in range(args.first_book, args.last_book + 1):
+        url = f'https://tululu.org/b{book_num}/'
         try:
             response = requests.get(url)
             response.raise_for_status()
             check_for_redirect(response)
-            books_data = parse_book_page(response, url)
-            download_txt(books_data['book_url'], f"{i}. {books_data['book_name']}")
-            download_image(books_data['image_url'])
+            book = parse_book_page(response, url)
+            download_txt(book['book_url'], f"{i}. {book['book_name']}")
+            download_image(book['image_url'])
         except requests.HTTPError as err:
             print(err.args[0])
+        except requests.ConnectionError as err:
+            print(f'Сбой соединения.Ошибка {err}')
+            time.sleep(3)
 
 
 if __name__ == '__main__':
